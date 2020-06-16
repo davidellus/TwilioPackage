@@ -7,7 +7,7 @@
 
 import Foundation
 import Vapor
-import CryptoSwift
+
 
 public struct OutgoingRoom : Content {
     let uniqueName: String
