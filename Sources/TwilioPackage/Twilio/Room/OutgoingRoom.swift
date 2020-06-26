@@ -7,16 +7,17 @@
 
 import Foundation
 import Vapor
-
+import CryptoSwift
 
 public struct OutgoingRoom : Content {
-    let uniqueName: String
+    public let uniqueName: String
     
     public init(uniqueName: String){
         self.uniqueName = uniqueName
     }
     
-    private enum CodingKeys : String,CodingKey{
-        case uniqueName = "unique_name"
+    public enum CodingKeys : String,CodingKey{
+        case uniqueName = "UniqueName"
     }
 }
+

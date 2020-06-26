@@ -9,7 +9,7 @@ import Foundation
 import Vapor
 
 public protocol TwilioProvider {
-    func sendRoom(_ room: OutgoingRoom) -> EventLoopFuture<OutgoingRoom>
+    func sendRoom(_ room: OutgoingRoom, on eventLoop: EventLoop) -> EventLoopFuture<OutgoingRoom>
 }
 
 public struct Twilio: TwilioProvider {
@@ -46,11 +46,15 @@ extension Twilio {
     ///   - container: Container
     /// - Returns: Future<Response>
     
-    public func sendRoom(_ room: OutgoingRoom) -> EventLoopFuture<OutgoingRoom>{
+    public enum TwilioError2: Error {
+        case someError
+    }
+    
+    public func sendRoom(_ room: OutgoingRoom, on eventLoop: EventLoop) -> EventLoopFuture<OutgoingRoom>{
         guard let configuration = self.configuration else {
                    fatalError("Twilio not configured. Use app.twilio.configuration = ...")
                }
-        return application.eventLoopGroup.future().flatMapThrowing { _ -> HTTPHeaders in
+        return eventLoop.future().flatMapThrowing { _ -> HTTPHeaders in
             let authKeyEncoded = try self.encode(accountId: configuration.accountId, accountSecret: configuration.accountSecret)
             var headers = HTTPHeaders()
             headers.add(name: .authorization, value: "Basic \(authKeyEncoded)")
@@ -59,9 +63,15 @@ extension Twilio {
             let twilioURI = URI(string: "https://video.twilio.com/v1/Rooms/")
             return self.application.client.post(twilioURI, headers: headers) {
                 try $0.content.encode(room, as: .urlEncodedForm)
+            }.hop(to: eventLoop)
+        }.flatMapThrowing{ response -> NewRoom in
+            print("bytes: \(String(buffer: response.body!))")
+            guard response.status != .ok else {
+                throw TwilioError2.someError
             }
-        }.flatMapThrowing{ response in
-           try response.content.decode(OutgoingRoom.self)
+            return try response.content.decode(NewRoom.self)
+        }.map {
+            OutgoingRoom(uniqueName: $0.unique_name)
         }
     }
     
@@ -69,6 +79,10 @@ extension Twilio {
 
 fileprivate extension Twilio {
     func encode(accountId: String, accountSecret: String) throws -> String {
+//        let aes = try AES(key: EncryptUtil.cryptoPwd, iv: EncryptUtil.cryptoVector, padding: .pkcs5)
+//        guard let authKeyEncoded = "\(accountId):\(accountSecret)".encryptToBase64(cipher: aes) else {
+//            throw TwilioError.encodingProblem
+//        }
         guard let apiKeyData = "\(accountId):\(accountSecret)".data(using: .utf8) else {
             throw TwilioError.encodingProblem
         }
@@ -88,3 +102,4 @@ extension Application {
 extension Request {
     public var twilio: Twilio { .init(application) }
 }
+

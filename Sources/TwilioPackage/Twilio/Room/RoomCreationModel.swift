@@ -9,19 +9,19 @@ import Foundation
 import Vapor
 
 public enum StatusRoom: String, Codable , CaseIterable{
-    case inprogress
+    case inprogress = "in-progress"
     case failed
     case completed
 }
 public enum TypeRoom: String,Codable,CaseIterable{
-    case p2p
+    case p2p = "peer-to-peer"
 }
 public struct Link : Content {
-    public let partecipants: String
+    public let participants: String
     public let recordings : String
     
-    public init(partecipants : String , recordings : String){
-        self.partecipants = partecipants
+    public init(participants : String , recordings : String){
+        self.participants = participants
         self.recordings = recordings
     }
 }
@@ -34,14 +34,14 @@ public struct NewRoom: Content{
     public let sid : String
     public let enable_turn : Bool //COULD be deprecated
     public let unique_name : String
-    public let max_partecipants : Int
-    public let duration : Int
+    public let max_participants : Int
+    public let duration : Int?
     public let status_callback_method : String //Its an hhtp method
-    public let status_callback : String //URI
-    public let record_partecipants_on_connect: Bool
-    public let video_codecs : [String] //make this enum = VP8 , H264. Not available in peer-to-peer rooms
-    public let media_region : String //Not av in peer to peer
-    public let end_time : String //Make this a datestamp
+    public let status_callback : String? //URI
+    public let record_participants_on_connect: Bool
+    public let video_codecs : [String]? //make this enum = VP8 , H264. Not available in peer-to-peer rooms
+    public let media_region : String? //Not av in peer to peer
+    public let end_time : String? //Make this a datestamp
     public let url: String
     public let links : Link //URI_MAP
     
@@ -57,8 +57,8 @@ public struct NewRoom: Content{
     endTime : String ,
     duration : Int,
     type : TypeRoom,
-    max_partecipants : Int,
-    record_partecipants_on_connect: Bool,
+    max_participants : Int,
+    record_participants_on_connect: Bool,
     video_codecs : String,
     media_region : String,
     url: String,
@@ -77,8 +77,8 @@ public struct NewRoom: Content{
         self.end_time = endTime
         self.duration = duration
         self.type = type
-        self.max_partecipants = max_partecipants
-        self.record_partecipants_on_connect = record_partecipants_on_connect
+        self.max_participants = max_participants
+        self.record_participants_on_connect = record_participants_on_connect
         self.video_codecs = [video_codecs]
         self.media_region = media_region
         self.url = url
