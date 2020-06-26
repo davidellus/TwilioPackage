@@ -12,7 +12,7 @@ import CryptoSwift
 public struct OutgoingRoom : Content {
     public let uniqueName: String
     
-    public init(uniqueName: String){
+    public init(uniqueName: String) {
         self.uniqueName = uniqueName
     }
     
